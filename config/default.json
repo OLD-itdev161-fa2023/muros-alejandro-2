@@ -1,3 +1,5 @@
 {
-    "mongoURL": "mongodb+srv://murosa:Mariofan2@cluster0.s08nvp4.mongodb.net/?retryWrites=true&w=majority"
+    "mongoURL": "mongodb+srv://murosa:Mariofan2@cluster0.s08nvp4.mongodb.net/?retryWrites=true&w=majority",
+    "jwtSecret": "wouldyoukindly"
+
 }
