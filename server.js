@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import User from './models/User';
+import Tasks from './models/Tasks'
 
 //initialize express application
 const app = express();
@@ -28,75 +29,145 @@ app.use(
  */
 app.get('/', (req,res) =>
     res.send('http get request sent to root api endpoint')
+)
+
+/**
+* @route POST api/tasks
+* @desc Add task
+*/
+app.post(
+'/api/tasks', 
+[
+    check('taskName', 'Please enter the name of your task')
+        .not()
+        .isEmpty(),
+    check('taskDescription', 'Please enter a description for your task')
+        .not()
+        .isEmpty(), 
+    check('unfinishedWork', 'Please enter the work that still needs to be done for your task')
+        .not()
+        .isEmpty()
+],
+async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+    } else {
+        const { taskName, taskDescription, unfinishedWork } = req.body;
+        try {
+            //check if task exists
+            let task = await Tasks.findOne({ taskName: taskName });
+            if(task) {
+                return res
+                .status(400)
+                .json({ errors: [{ msg: 'Task already listed' }] });
+            }
+
+            // create a new task
+            task = new Tasks({
+                taskName: taskName,
+                taskDescription: taskDescription,
+                unfinishedWork: unfinishedWork,
+                finishedWork: '',
+                completionStatus: 'Unfinished'
+            });
+
+            //save to the db and return
+            await task.save();
+        } catch(error) {
+            res.status(500).send('Server error');
+        }
+    }
+}
 );
 
 /**
- * @route POST api/users
- * @desc Register user
+ * @route get api/tasks
+ * @desc get tasks
  */
-app.post(
-    '/api/users', 
-    [
-        check('name', 'Please enter your name')
-        .not()
-        .isEmpty(),
-        check('email', 'Please enter a valid email').isEmail(), 
-        check(
-            'password', 
-            'Please enter a password with 6 or more characters'
-        ).isLength({ min: 6 })
-    ],
-    async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
-        } else {
-            const { name, email, password } = req.body;
-            try {
-                //check if user exists
-                let user = await User.findOne({ email: email });
-                if(user) {
-                    return res
-                    .status(400)
-                    .json({ errors: [{ msg: 'User already exists' }] });
-                }
+app.get('/api/tasks', async (req, res) => {
+    try {
+        const tasks = await Tasks.find().sort({ taskName: '' });
 
-                // create a new user
-                user = new User({
-                    name: name,
-                    email: email,
-                    password: password
-                });
-
-                //encrypt the password
-                const salt = await bcrypt.genSalt(10);
-                user.password = await bcrypt.hash(password, salt);
-
-                //save to the db and return
-                await user.save();
-
-                // generate and return a jwt token
-                const payload = {
-                    user: {
-                        id: user.id
-                    }
-                };
-
-                jwt.sign(
-                    payload,
-                    config.get('jwtSecret'),
-                    { expiresIn: '10hr'},
-                    (err, token) => {
-                        if(err) throw err;
-                        res.json({ token: token });
-                    }
-                );
-            } catch(error) {
-                res.status(500).send('Server error');
-            }
-        }
+        res.json(tasks);
+        res.send(tasks);
+    } catch(error) {
+        console.error(error);
+        res.status(500).send('Server error');
     }
-);
+});
+
+/**
+ * @route get api/tasks/:id
+ * @desc get task
+ */
+app.get('/api/tasks/:id', async (req, res) => {
+    try {
+        const task = await Tasks.findById(req.params.id);
+
+        //make sure the task was found
+        if (!task) {
+            return res.status(404).json({ msg: 'Task not found' });
+        }
+
+        res.json(task);
+    } catch(error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+/**
+ * @route delete api/tasks/:id
+ * @desc delete a task
+ */
+app.delete('/api/posts/:id', async (req, res) => {
+    try {
+        const task = await Tasks.findById(req.params.id);
+
+        //make sure the post was found
+        if (!task) {
+            return res.status(404).json({ msg: 'task not found' });
+        }
+
+        await task.remove();
+
+        res.json({ msg: 'Task removed' });
+    } catch(error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+/**
+ * @route put api/tasks/:id
+ * @desc update a task
+ */
+app.put('/api/tasks/:id', async (req, res) => {
+    try {
+        const { taskName, taskDescription, unfinishedWork, finishedWork, completionStatus } = req.body;
+        const task = await Tasks.findById(req.params.id);
+
+        //make sure the task was found
+        if (!task) {
+            return res.status(404).json({ msg: 'Task not found' });
+        }
+
+        //update the task and return
+        task.taskName = taskName || task.taskName
+        task.taskDescription = taskDescription || task.taskDescription
+        task.unfinishedWork = unfinishedWork || task.unfinishedWork
+        task.finishedWork = finishedWork || task.finishedWork
+        task.completionStatus = completionStatus || task.completionStatus
+
+        await task.save();
+
+        res.json(task);
+    } catch(error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
 
 //connection listener
 const port = 5000;
