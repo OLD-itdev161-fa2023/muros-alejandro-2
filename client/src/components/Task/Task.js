@@ -1,14 +1,16 @@
 import React from 'react';
+import './styles.css';
 
 const Task = props => {
     const { task } = props;
     
     return (
-        <div>
+        <div className="taskCard">
             <h1>{task.taskName}</h1>
-            <p>{task.taskDescription}</p>
-            <p>Unfinished work: {task.unfinishedWork}</p>
-            <p>Finished work: {task.finishedWork}</p>
+            <p><b>Task Description:</b> {task.taskDescription}</p>
+            <p><b>Unfinished work:</b> {task.unfinishedWork}</p>
+            <p><b>Finished work:</b> {task.finishedWork}</p>
+            <p><b>completion status:</b> {task.completionStatus}</p>
         </div>
     )
 }

@@ -1,6 +1,8 @@
 .taskListItem {
-    padding: 10px;
+
+    margin: 40px 350px 0 350px;
     border: solid 1px transparent;
+    background-color: white;
 }
 
 .taskListItem:hover {
@@ -9,9 +11,28 @@
     cursor: pointer;
 }
 
+.taskListItem h1 {
+    font-size: 40px;
+}
+
 .taskListItem p {
     max-width: 500px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: left;
+    padding-left: 40px;
+    padding-bottom: 30px;
+    font-size: 25px;
+}
+
+.taskControls {
+    margin: 0 350px 40px 350px;
+    padding: 20px 0 20px 0;
+    background-color: white;
+}
+
+.taskControls button {
+    margin-left: 10px;
+    width: 100px;
 }

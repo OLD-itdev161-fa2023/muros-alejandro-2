@@ -2,10 +2,6 @@ import express from "express";
 import connectDatabase from "./config/db";
 import { check, validationResult } from 'express-validator';
 import cors from 'cors';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import config from 'config';
-import User from './models/User';
 import Tasks from './models/Tasks'
 
 //initialize express application
@@ -68,7 +64,7 @@ async (req, res) => {
                 taskName: taskName,
                 taskDescription: taskDescription,
                 unfinishedWork: unfinishedWork,
-                finishedWork: '',
+                finishedWork: 'N/A',
                 completionStatus: 'Unfinished'
             });
 
@@ -121,7 +117,7 @@ app.get('/api/tasks/:id', async (req, res) => {
  * @route delete api/tasks/:id
  * @desc delete a task
  */
-app.delete('/api/posts/:id', async (req, res) => {
+app.delete('/api/tasks/:id', async (req, res) => {
     try {
         const task = await Tasks.findById(req.params.id);
 
